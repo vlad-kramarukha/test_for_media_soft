@@ -1,9 +1,10 @@
 <script setup>
 import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSelect } from 'naive-ui'
-import { reactive, onMounted, ref, watch } from 'vue'
+import { reactive, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import clone from 'lodash/clone'
+import uniqueId from 'lodash/uniqueId'
 
 const router = useRouter()
 const { dispatch, getters } = useStore()
@@ -36,7 +37,7 @@ function makeTodo() {
 
 	defaultTodoStatus[status] = true
 
-	return { title, description, ...defaultTodoStatus }
+	return { title, description, ...defaultTodoStatus, id: uniqueId() }
 }
 
 function onSave() {
@@ -65,7 +66,7 @@ onMounted(() => {
 
 <template>
 	<NModal @after-leave="onAfterLeave()" v-model:show="visible" close-on-esc>
-		<NCard class="w-1/2" size="huge">
+		<NCard style="width: 700px;" size="huge">
 			<template #header> Создание задачи </template>
 
 			<template #default>

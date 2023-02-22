@@ -4,24 +4,43 @@ import { ArrowDown, ArrowUp, Filter } from '@vicons/ionicons5'
 import Todo from './Todo.vue'
 
 import { useStore } from 'vuex'
-import { computed, defineEmits, defineProps, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, defineProps, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
 	showDeleted: Boolean
 })
-
 const { getters, dispatch } = useStore()
 const router = useRouter()
 
-const todoList = computed(() => (!props.showDeleted ? getters.getList : getters.getDeletedList))
+const todoList = computed(() => {
+    if (!filter.value) {
+        return !props.showDeleted ? getters.getList : getters.getDeletedList
+    } else {
+        const getterName = `makeFilterBy${filter.value}`
+        return getters[getterName]
+    }
+})
+const computedListLength = computed(() => todoList.value.length)
+const sort = ref(null)
+const sortList = ref(getters.getSortList)
+const order = ref('asc')
+const filter = ref(null)
+const filterList = ref(getters.getFilterList)
+
+const computedButtonOrderText = computed(() => order.value === 'asc' ? 'По возрастанию' : 'По убыванию')
+const computedButtonOrderIcon = computed(() => order.value === 'asc' ? ArrowUp : ArrowDown)
+
+function toggleOrder() {
+    order.value = order.value === 'asc' ? 'desc' : 'asc'
+}
 
 function onCreate() {
 	router.push({ path: '/list/add' })
 }
 
-function onChangeStatus(newStatus, index) {
-	dispatch('changeStatus', { newStatus, index })
+function onChangeStatus({ newStatus, todo }) {
+	dispatch('changeStatus', { newStatus, todo })
 }
 
 function onDelete(todo) {
@@ -29,25 +48,36 @@ function onDelete(todo) {
 }
 
 function onRestore(todo) {
-    dispatch('restoreTodo', todo)
+	dispatch('restoreTodo', todo)
 }
 
 function onSave(todo, index) {
-    dispatch('saveTodoAfterRedact', {todo, index})
+	dispatch('saveTodoAfterRedact', { todo, index })
+	router.push({ name: 'List' })
 }
 
-function onRedact(todo) {
-    dispatch('redactTodo', todo)
+function onRedact({ id }) {
+	router.push({ name: 'ListWithRedactMode', params: { id } })
 }
 
-function onCancelRedact(todo) {
-    dispatch('cancelRedactTodo', todo)
+function onCancelRedact() {
+	router.push({ name: 'List' })
 }
 
-function toggleList() { // Переключение списка задач [Действующий или Удаленные]
+function toggleList() {
+	// Переключение списка задач [Действующий или Удаленные]
 	const name = !props.showDeleted ? 'DeletedList' : 'List'
 	router.push({ name })
 }
+
+watch(sort, (field) => {
+    dispatch('makeSortListBy', {order: order.value, field})
+})
+
+watch(order, (order) => {
+    dispatch('makeSortListBy', {order, field: sort.value})
+})
+
 </script>
 
 <template>
@@ -55,13 +85,15 @@ function toggleList() { // Переключение списка задач [Д�
 		<div class="flex gap-2 mb-2">
 			<NButton type="primary" @click="onCreate()"> Создать задачу </NButton>
 
-			<NSelect placeholder="Параметр сортировки" />
+            <NSelect v-model:value="filter" placeholder="Параметр фильтрации" :options="filterList" :disabled="!computedListLength" />
 
-			<NButton>
-				По убыванию
+			<NSelect v-model:value="sort" placeholder="Параметр сортировки" :options="sortList" :disabled="!computedListLength" />
+
+			<NButton @click="toggleOrder()" :disabled="!computedListLength">
+				{{ computedButtonOrderText }}
 
 				<template #icon>
-					<NIcon :component="ArrowDown" />
+					<NIcon :component="computedButtonOrderIcon" />
 				</template>
 			</NButton>
 
@@ -77,12 +109,12 @@ function toggleList() { // Переключение списка задач [Д�
 		<Todo
 			v-for="(todo, index) in todoList"
 			:todo="todo"
-			@onChangeStatus="onChangeStatus($event, index)"
+			@onChangeStatus="onChangeStatus($event)"
 			@onDelete="onDelete($event)"
-            @onRestore="onRestore($event)"
-            @onSave="onSave($event, index)"
-            @onRedact="onRedact($event)"
-            @onCancelRedact="onCancelRedact($event)"
+			@onRestore="onRestore($event)"
+			@onSave="onSave($event, index)"
+			@onRedact="onRedact($event)"
+			@onCancelRedact="onCancelRedact($event)"
 		></Todo>
 	</div>
 </template>

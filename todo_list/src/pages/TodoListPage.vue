@@ -3,7 +3,7 @@ import TodoList from '../components/TodoList.vue'
 import { defineProps, watch, computed } from 'vue'
 
 const props = defineProps({
-	showDeleted: Boolean
+	showDeleted: Boolean,
 })
 
 const computedPageText = computed(() => (props.showDeleted ? 'Удаленные задачи' : 'Список задач'))

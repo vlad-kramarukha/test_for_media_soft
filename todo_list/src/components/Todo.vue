@@ -3,6 +3,7 @@ import { NCard, NButton, NTag, NIcon, NForm, NFormItem, NInput } from 'naive-ui'
 import { PencilSharp } from '@vicons/ionicons5'
 import { defineProps, defineEmits, computed, ref, watch } from 'vue'
 import { useStore } from 'vuex'
+import { useRoute } from 'vue-router'
 import findKey from 'lodash/findKey'
 
 const { getters } = useStore()
@@ -10,9 +11,22 @@ const { getters } = useStore()
 const props = defineProps({
 	todo: Object
 })
-const emit = defineEmits(['onDelete', 'onChangeStatus', 'onRestore', 'onRedact', 'onSave', 'onCancelRedact', 'update:todo'])
+const emit = defineEmits([
+	'onDelete',
+	'onChangeStatus',
+	'onRestore',
+	'onRedact',
+	'onSave',
+	'onCancelRedact',
+	'update:todo'
+])
 
-const todo = ref(props.todo)
+const todo = computed({
+	get: () => props.todo,
+	set: () => {}
+})
+const route = useRoute()
+
 const title = computed(() => todo.value.title)
 const description = computed(() => todo.value.description)
 
@@ -30,17 +44,18 @@ const rules = {
 }
 
 /* Параметры для статуса задачи */
-const statusTypeMap = { // Мапа для перевода статуса
+const statusTypeMap = {
+	// Мапа для перевода статуса
 	isTodo: 'warning',
 	isWork: 'info',
 	isDone: 'success'
 }
 const statusKey = computed(() => findKey(todo.value, (v) => v === true)) // Получения ключа актуального статуса задачи
 const translatedStatus = computed(() => getters.getTrasformedStatusList[statusKey.value]) // Перевод статуса
-const computedStatusType = computed(() => statusTypeMap[statusKey.value]) // Рассчет цвета для лейбла 
+const computedStatusType = computed(() => statusTypeMap[statusKey.value]) // Рассчет цвета для лейбла
 
 const isDeleted = computed(() => todo.value.isDeleted)
-const isRedact = computed(() => todo.value.isRedact)
+const isRedact = computed(() => route.params.id ? +route.params.id === +todo.value.id : false)
 const isTodo = computed(() => todo.value.isTodo || isDeleted.value || isRedact.value)
 const isWork = computed(() => todo.value.isWork || isDeleted.value || isRedact.value)
 const isDone = computed(() => todo.value.isDone || isDeleted.value || isRedact.value)
@@ -51,7 +66,7 @@ const computedRedactButtonType = computed(() => (isRedact.value ? 'primary' : 'd
 const computedRedactButtonText = computed(() => (isRedact.value ? 'Сохранить' : 'Изменить')) // Рассчет текста кнопки для редактирования / сохранения задачи
 
 function onChangeStatus(newStatus) {
-	emit('onChangeStatus', newStatus)
+	emit('onChangeStatus', {newStatus, todo: todo.value})
 }
 
 function onAction() {
@@ -60,29 +75,27 @@ function onAction() {
 }
 
 function onRedact() {
-    if (isRedact.value) {
-        form.value.validate((errors) => {
-            if (!errors) {
-                todo.value.description = formModel.value.description
-                emit('onSave', todo.value)
-            }
-        })
-    } else {
-        formModel.value.description = todo.value.description
-        emit('onRedact', todo.value)
-    }
-
+	if (isRedact.value) {
+		form.value.validate((errors) => {
+			if (!errors) {
+				todo.value.description = formModel.value.description
+				emit('onSave', todo.value)
+			}
+		})
+	} else {
+		formModel.value.description = todo.value.description
+		emit('onRedact', todo.value)
+	}
 }
 
 function onCancel() {
-    emit('onCancelRedact', todo.value)
+	emit('onCancelRedact', todo.value)
 }
-
 </script>
 
 <template>
 	<NCard size="huge" hoverable>
-		<template #header> {{ title }} </template>
+		<template #header> {{ title }} {{ todo.id }}</template>
 
 		<template #header-extra>
 			<NTag round :type="computedStatusType" :bordered="false">{{ translatedStatus }}</NTag>

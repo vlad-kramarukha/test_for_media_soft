@@ -3,15 +3,31 @@ import reject from 'lodash/reject'
 import filter from 'lodash/filter'
 import orderBy from 'lodash/orderBy'
 import reduce from 'lodash/reduce'
-import pick from 'lodash/pick'
+import omit from 'lodash/omit'
+import clone from 'lodash/clone'
 
 const state = {
 	list: [],
+    copyList: [],
 	deletedList: [],
 	statusList: [
 		{ label: 'Выполнить', value: 'isTodo' },
 		{ label: 'Выполняется', value: 'isWork' },
 		{ label: 'Выполнено', value: 'isDone' }
+	],
+	sortList: [
+		{ label: 'Без сортировки', value: null },
+		{ label: 'Сортировка по id', value: 'id' },
+		{ label: 'Сортировка по заголовку', value: 'title' },
+		{ label: 'Сортировка по статусу Выполнить', value: 'isTodo' },
+		{ label: 'Сортировка по статусу Выполняется', value: 'isWork' },
+		{ label: 'Сортировка по статусу Выполено', value: 'isDone' }
+	],
+	filterList: [
+		{ label: 'Без фильтрации', value: null },
+		{ label: 'Cтатус Выполнить', value: 'IsTodo' },
+		{ label: 'Cтатус Выполняется', value: 'IsWork' },
+		{ label: 'Cтатус Выполнено', value: 'IsDone' }
 	],
 	defaultTodoStatus: {
 		isTodo: false,
@@ -23,44 +39,43 @@ const state = {
 }
 
 const mutations = {
-	createTodo({ list }, todo) {
+	createTodo({ list, copyList }, todo) {
 		list.push(todo)
 	},
 
-	deleteTodo(state, todo) {
+	deleteTodo(state, currentTodo) {
 		const { list, deletedList } = state
-		state.list = reject(list, todo)
+		const todo = clone(currentTodo)
+		state.list = reject(list, ['id', todo.id])
 		todo.isDeleted = true
 		deletedList.push(todo)
 	},
 
-	restoreTodo(state, todo) {
+	restoreTodo(state, currentTodo) {
 		const { list, deletedList } = state
-		state.deletedList = reject(deletedList, todo)
+		const todo = clone(currentTodo)
+		state.deletedList = reject(deletedList, ['id', todo.id])
 		todo.isDeleted = false
 		list.push(todo)
 	},
 
-	redactTodo({ list }, todo) {
-		todo.isRedact = true
-	},
-
-	cancelRedactTodo({ list }, todo) {
-		todo.isRedact = false
-	},
-
 	saveTodoAfterRedact({ list }, data) {
 		const { todo, index } = data
-
 		list[index] = todo
 	},
 
-	changeStatus({ list, defaultTodoStatus }, data) {
-		const { newStatus, index } = data
-		const todoWithoutStatus = pick(list[index], 'title', 'description')
+	changeStatus(state, data) {
+		const { newStatus, todo } = data
 
-		list[index] = { ...todoWithoutStatus, ...defaultTodoStatus }
-		list[index][newStatus] = true
+		for (const key in omit(todo, 'title', 'description', 'id')) {
+			todo[key] = false
+		}
+
+		todo[newStatus] = true
+	},
+
+	makeSortListBy(state, { order, field }) {
+		state.list = orderBy(state.list, field, order)
 	}
 }
 
@@ -77,22 +92,17 @@ const actions = {
 		commit('restoreTodo', todo)
 	},
 
-	redactTodo({ commit }, todo) {
-		commit('redactTodo', todo)
-	},
-
-	cancelRedactTodo({ commit }, todo) {
-		commit('cancelRedactTodo', todo)
-	},
-
 	saveTodoAfterRedact({ commit }, { todo, index }) {
 		commit('saveTodoAfterRedact', { todo, index })
-		commit('cancelRedactTodo', todo)
 	},
 
 	changeStatus({ commit }, data) {
 		commit('changeStatus', data)
-	}
+	},
+
+	makeSortListBy: ({ commit }, { order, field }) => commit('makeSortListBy', { order, field }),
+
+    makeFilterListBy: ({ commit }, field) => commit('makeFilterListBy', field)
 }
 
 const getters = {
@@ -103,6 +113,10 @@ const getters = {
 	getDefaultStatus: ({ defaultTodoStatus }) => defaultTodoStatus,
 
 	getDeletedList: ({ deletedList }) => deletedList,
+
+	getSortList: ({ sortList }) => sortList,
+
+	getFilterList: ({ filterList }) => filterList,
 
 	getTrasformedStatusList: ({ statusList }) =>
 		reduce(
@@ -116,19 +130,11 @@ const getters = {
 			{}
 		),
 
-	getOnlyTodo: ({ list }) => filter(list, 'isTodo'),
+	makeFilterByIsTodo: ({ list }) => filter(list, 'isTodo'),
 
-	getOnlyWork: ({ list }) => filter(list, 'isWork'),
+	makeFilterByIsWork: ({ list }) => filter(list, 'isWork'),
 
-	getOnlyDone: ({ list }) => filter(list, 'isDone'),
-
-	makeSortListByTitle: ({ list }, order) => orderBy(list, 'title', order),
-
-	makeSortListByStatusTodo: ({ list }, order) => orderBy(list, 'isTodo', order),
-
-	makeSortListByStatusWork: ({ list }, order) => orderBy(list, 'isWork', order),
-
-	makeSortListByStatusDone: ({ list }, order) => orderBy(list, 'isDone', order)
+    makeFilterByIsDone: ({ list }) => filter(list, 'isDone')
 }
 
 export default createStore({
