@@ -1,29 +1,19 @@
-# todo_list
+# Крамаруха Владислав
+## Тестовое задание для MediaSoft
 
-This template should help get you started developing with Vue 3 in Vite.
+Тестовый проект "Список задач"
+Реализованная функциональность:
+- Создание / редактирование / удаление / восстановление задач
+- Фильтрация / сортировка списков задач
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
+## Установить node модули
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### Запустить проект
 
 ```sh
 npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
 ```
