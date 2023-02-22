@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from './pages/HomePage.vue'
 
-const useTodoListPage = async () => await import('./pages/TodoListPage.vue')
+const useTodoListPage = () => import('./pages/TodoListPage.vue')
+const useTodoFormComponent = () => import('./components/TodoForm.vue')
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,7 +14,23 @@ const router = createRouter({
 
 		{
 			path: '/list',
-			component: useTodoListPage
+			name: 'List',
+			component: useTodoListPage,
+			children: [
+				{
+					path: 'add',
+					component: useTodoFormComponent
+				},
+			]
+		},
+
+		{
+			path: '/list/deleted',
+			name: 'DeletedList',
+			component: useTodoListPage,
+			props: {
+				showDeleted: true
+			}
 		}
 	]
 })
