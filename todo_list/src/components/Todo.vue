@@ -15,10 +15,7 @@ const emit = defineEmits([
 	'onDelete',
 	'onChangeStatus',
 	'onRestore',
-	'onRedact',
-	'onSave',
-	'onCancelRedact',
-	'update:todo'
+	'onRedact'
 ])
 
 const todo = computed({
@@ -29,19 +26,6 @@ const route = useRoute()
 
 const title = computed(() => todo.value.title)
 const description = computed(() => todo.value.description)
-
-// Параметры формы
-const formModel = ref({
-	description: ''
-})
-const form = ref(null)
-const rules = {
-	description: {
-		required: true,
-		message: 'Необходимо заполнить поле',
-		trigger: 'input'
-	}
-}
 
 /* Параметры для статуса задачи */
 const statusTypeMap = {
@@ -55,18 +39,16 @@ const translatedStatus = computed(() => getters.getTrasformedStatusList[statusKe
 const computedStatusType = computed(() => statusTypeMap[statusKey.value]) // Рассчет цвета для лейбла
 
 const isDeleted = computed(() => todo.value.isDeleted)
-const isRedact = computed(() => route.params.id ? +route.params.id === +todo.value.id : false)
+const isRedact = computed(() => (route.params.id ? +route.params.id === +todo.value.id : false))
 const isTodo = computed(() => todo.value.isTodo || isDeleted.value || isRedact.value)
 const isWork = computed(() => todo.value.isWork || isDeleted.value || isRedact.value)
 const isDone = computed(() => todo.value.isDone || isDeleted.value || isRedact.value)
 
 const computedActionButtonType = computed(() => (isDeleted.value ? 'success' : 'error')) // Рассчет цвета кнопки для удаления / восстановления задачи
 const computedActionButtonText = computed(() => (isDeleted.value ? 'Восстановить' : 'Удалить')) // Рассчет текста кнопки для удаления / восстановления задачи
-const computedRedactButtonType = computed(() => (isRedact.value ? 'primary' : 'default')) // Рассчет цвета кнопки для редактирования / сохранения задачи
-const computedRedactButtonText = computed(() => (isRedact.value ? 'Сохранить' : 'Изменить')) // Рассчет текста кнопки для редактирования / сохранения задачи
 
 function onChangeStatus(newStatus) {
-	emit('onChangeStatus', {newStatus, todo: todo.value})
+	emit('onChangeStatus', { newStatus, todo: todo.value })
 }
 
 function onAction() {
@@ -75,49 +57,20 @@ function onAction() {
 }
 
 function onRedact() {
-	if (isRedact.value) {
-		form.value.validate((errors) => {
-			if (!errors) {
-				todo.value.description = formModel.value.description
-				emit('onSave', todo.value)
-			}
-		})
-	} else {
-		formModel.value.description = todo.value.description
-		emit('onRedact', todo.value)
-	}
-}
-
-function onCancel() {
-	emit('onCancelRedact', todo.value)
+	emit('onRedact', todo.value)
 }
 </script>
 
 <template>
 	<NCard size="huge" hoverable>
-		<template #header> {{ title }} {{ todo.id }}</template>
+		<template #header> {{ title }} </template>
 
 		<template #header-extra>
 			<NTag round :type="computedStatusType" :bordered="false">{{ translatedStatus }}</NTag>
 		</template>
 
 		<template #default>
-			<NForm v-if="isRedact" ref="form" :rules="rules" :model="formModel">
-				<NFormItem path="description" label="Редактирование описания">
-					<NInput
-						v-model:value="formModel.description"
-						autofocus
-						type="textarea"
-						:autosize="{ maxRows: 8, minRows: 5 }"
-						placeholder="Введите текст"
-						clearable
-					/>
-				</NFormItem>
-			</NForm>
-
-			<template v-else>
-				{{ description }}
-			</template>
+			{{ description }}
 		</template>
 
 		<template #action>
@@ -127,16 +80,13 @@ function onCancel() {
 						:disabled="isDeleted"
 						size="small"
 						secondary
-						:type="computedRedactButtonType"
 						@click="onRedact()"
 					>
-						{{ computedRedactButtonText }}
-						<template v-if="!isRedact" #icon>
+						Изменить
+						<template #icon>
 							<NIcon :component="PencilSharp" />
 						</template>
 					</NButton>
-
-					<NButton v-if="isRedact" size="small" secondary type="error" @click="onCancel()"> Отмена </NButton>
 				</div>
 
 				<div class="flex gap-2">

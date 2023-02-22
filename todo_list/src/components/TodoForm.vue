@@ -1,13 +1,18 @@
 <script setup>
 import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSelect } from 'naive-ui'
-import { reactive, onMounted, ref } from 'vue'
+import { reactive, onMounted, ref, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import clone from 'lodash/clone'
 import uniqueId from 'lodash/uniqueId'
+import findKey from 'lodash/findKey'
 
 const router = useRouter()
 const { dispatch, getters } = useStore()
+
+const props = defineProps({
+	id: [String, Number]
+})
 
 const formModel = reactive({
 	title: '',
@@ -33,11 +38,11 @@ const rules = {
 
 function makeTodo() {
 	const { title, description, status } = formModel
-    const defaultTodoStatus = clone(getters.getDefaultStatus)
+	const defaultTodoStatus = clone(getters.getDefaultStatus)
 
 	defaultTodoStatus[status] = true
 
-	return { title, description, ...defaultTodoStatus, id: uniqueId() }
+	return { title, description, ...defaultTodoStatus, id: props.id || uniqueId() }
 }
 
 function onSave() {
@@ -45,7 +50,7 @@ function onSave() {
 
 	validate((errors) => {
 		if (!errors) {
-			dispatch('createTodo', makeTodo())
+			dispatch(!props.id ? 'createTodo' : 'saveTodoAfterRedact', makeTodo())
 			onClose()
 		}
 	})
@@ -61,12 +66,20 @@ function onAfterLeave() {
 
 onMounted(() => {
 	visible.value = true
+
+	if (getters.getRedactableTodo) {
+		const { title, description } = getters.getRedactableTodo
+
+		formModel.title = title
+		formModel.description = description
+		formModel.status = findKey(getters.getRedactableTodo, (v) => v === true)
+	}
 })
 </script>
 
 <template>
 	<NModal @after-leave="onAfterLeave()" v-model:show="visible" close-on-esc>
-		<NCard style="width: 700px;" size="huge">
+		<NCard style="width: 700px" size="huge">
 			<template #header> Создание задачи </template>
 
 			<template #default>

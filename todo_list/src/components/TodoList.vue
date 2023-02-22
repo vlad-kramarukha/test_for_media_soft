@@ -1,6 +1,6 @@
 <script setup>
 import { NButton, NSelect, NIcon, NDivider } from 'naive-ui'
-import { ArrowDown, ArrowUp, Filter } from '@vicons/ionicons5'
+import { ArrowDown, ArrowUp, CloudOffline } from '@vicons/ionicons5'
 import Todo from './Todo.vue'
 
 import { useStore } from 'vuex'
@@ -14,25 +14,25 @@ const { getters, dispatch } = useStore()
 const router = useRouter()
 
 const todoList = computed(() => {
-    if (!filter.value) {
-        return !props.showDeleted ? getters.getList : getters.getDeletedList
-    } else {
-        const getterName = `makeFilterBy${filter.value}`
-        return getters[getterName]
-    }
+	if (!filter.value) {
+		return !props.showDeleted ? getters.getList : getters.getListOnlyDeleted
+	} else {
+		const getterName = !props.showDeleted ? `makeFilterBy${filter.value}` : `makeFilterDeletedBy${filter.value}`
+		return getters[getterName]
+	}
 })
-const computedListLength = computed(() => todoList.value.length)
+
 const sort = ref(null)
 const sortList = ref(getters.getSortList)
 const order = ref('asc')
 const filter = ref(null)
 const filterList = ref(getters.getFilterList)
 
-const computedButtonOrderText = computed(() => order.value === 'asc' ? 'По возрастанию' : 'По убыванию')
-const computedButtonOrderIcon = computed(() => order.value === 'asc' ? ArrowUp : ArrowDown)
+const computedButtonOrderText = computed(() => (order.value === 'asc' ? 'По возрастанию' : 'По убыванию'))
+const computedButtonOrderIcon = computed(() => (order.value === 'asc' ? ArrowUp : ArrowDown))
 
 function toggleOrder() {
-    order.value = order.value === 'asc' ? 'desc' : 'asc'
+	order.value = order.value === 'asc' ? 'desc' : 'asc'
 }
 
 function onCreate() {
@@ -56,12 +56,18 @@ function onSave(todo, index) {
 	router.push({ name: 'List' })
 }
 
-function onRedact({ id }) {
-	router.push({ name: 'ListWithRedactMode', params: { id } })
+function onRedact(todo) {
+	router.push({ name: 'ListWithRedactMode', params: { id: todo.id } })
+	dispatch('redactTodo', todo)
 }
 
 function onCancelRedact() {
 	router.push({ name: 'List' })
+}
+
+function onClear() {
+	filter.value = null
+	sort.value = null
 }
 
 function toggleList() {
@@ -71,31 +77,41 @@ function toggleList() {
 }
 
 watch(sort, (field) => {
-    dispatch('makeSortListBy', {order: order.value, field})
+	dispatch('makeSortListBy', { order: order.value, field })
 })
 
 watch(order, (order) => {
-    dispatch('makeSortListBy', {order, field: sort.value})
+	dispatch('makeSortListBy', { order, field: sort.value })
 })
-
 </script>
 
 <template>
 	<div class="pt-4 pb-4 sticky top-0 z-10 bg-white">
-		<div class="flex gap-2 mb-2">
-			<NButton type="primary" @click="onCreate()"> Создать задачу </NButton>
+		<div class="grid grid-rows-1 grid-cols-5 gap-2 mb-4">
+			<NSelect
+				v-model:value="filter"
+				placeholder="Параметр фильтрации"
+				:options="filterList"
+				class="col-span-2"
+			/>
 
-            <NSelect v-model:value="filter" placeholder="Параметр фильтрации" :options="filterList" :disabled="!computedListLength" />
+			<NSelect v-model:value="sort" placeholder="Параметр сортировки" :options="sortList" class="col-span-2" />
 
-			<NSelect v-model:value="sort" placeholder="Параметр сортировки" :options="sortList" :disabled="!computedListLength" />
-
-			<NButton @click="toggleOrder()" :disabled="!computedListLength">
+			<NButton @click="toggleOrder()" :disabled="!sort" class="col-auto">
 				{{ computedButtonOrderText }}
 
 				<template #icon>
 					<NIcon :component="computedButtonOrderIcon" />
 				</template>
 			</NButton>
+		</div>
+
+		<div class="flex justify-between">
+			<div>
+				<NButton class="mr-2" type="primary" @click="onCreate()"> Создать задачу </NButton>
+
+				<NButton class="mr-2" type="error" @click="onClear()"> Очистить фильтры </NButton>
+			</div>
 
 			<NButton :type="!props.showDeleted ? 'default' : 'primary'" @click="toggleList()">
 				{{ !props.showDeleted ? 'Показать удаленные' : 'Показать действующие' }}
@@ -116,6 +132,8 @@ watch(order, (order) => {
 			@onRedact="onRedact($event)"
 			@onCancelRedact="onCancelRedact($event)"
 		></Todo>
+
+		<NIcon class="no-data" size="60" color="#d1d5db" v-if="!todoList.length" :component="CloudOffline" />
 	</div>
 </template>
 
@@ -123,5 +141,12 @@ watch(order, (order) => {
 .todo-list {
 	max-height: 700px;
 	overflow-y: auto;
+}
+
+.no-data {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
 }
 </style>

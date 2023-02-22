@@ -20,14 +20,15 @@ const router = createRouter({
 				{
 					path: 'add',
 					component: useTodoFormComponent
+				},
+
+				{
+					path: '/list/:id/edit',
+					name: 'ListWithRedactMode',
+					component: useTodoFormComponent,
+					props: true
 				}
 			]
-		},
-
-		{
-			path: '/list/:id/edit',
-			name: 'ListWithRedactMode',
-			component: useTodoListPage,
 		},
 
 		{
