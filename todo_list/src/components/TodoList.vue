@@ -30,8 +30,10 @@ const filterList = getters.getFilterList
 
 const computedButtonOrderText = computed(() => (order.value === 'asc' ? 'По возрастанию' : 'По убыванию'))
 const computedButtonOrderIcon = computed(() => (order.value === 'asc' ? ArrowUp : ArrowDown))
-const computedToggleListButtonText = computed(() => !props.showDeleted ? 'Показать удаленные' : 'Показать действующие')
-const computedToggleListButtonType = computed(() => !props.showDeleted ? 'default' : 'primary')
+const computedToggleListButtonText = computed(() =>
+	!props.showDeleted ? 'Показать удаленные' : 'Показать действующие'
+)
+const computedToggleListButtonType = computed(() => (!props.showDeleted ? 'default' : 'primary'))
 
 function toggleOrder() {
 	order.value = order.value === 'asc' ? 'desc' : 'asc'
@@ -53,9 +55,8 @@ function onRestore(todo) {
 	dispatch('restoreTodo', todo)
 }
 
-function onRedact(todo) {
-	router.push({ name: 'ListWithRedactMode', params: { id: todo.id } })
-	dispatch('redactTodo', todo)
+function onRedact({ id }) {
+	router.push({ name: 'ListWithRedactMode', params: { id } })
 }
 
 function onClear() {

@@ -36,9 +36,9 @@ const computedStatusType = computed(() => statusTypeMap[statusKey.value]) // Р�
 
 const isDeleted = computed(() => props.todo.isDeleted)
 const isRedact = computed(() => (route.params.id ? +route.params.id === +props.todo.id : false))
-const isTodo = computed(() => props.todo.isTodo || isDeleted.value || isRedact.value)
-const isWork = computed(() => props.todo.isWork || isDeleted.value || isRedact.value)
-const isDone = computed(() => props.todo.isDone || isDeleted.value || isRedact.value)
+const isTodo = computed(() => props.todo.isTodo || isDeleted.value)
+const isWork = computed(() => props.todo.isWork || isDeleted.value)
+const isDone = computed(() => props.todo.isDone || isDeleted.value)
 
 const computedActionButtonType = computed(() => (isDeleted.value ? 'success' : 'error')) // Рассчет цвета кнопки для удаления / восстановления задачи
 const computedActionButtonText = computed(() => (isDeleted.value ? 'Восстановить' : 'Удалить')) // Рассчет текста кнопки для удаления / восстановления задачи

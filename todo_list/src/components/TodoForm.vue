@@ -1,11 +1,12 @@
 <script setup>
 import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSelect } from 'naive-ui'
-import { reactive, onMounted, ref, shallowRef, defineProps } from 'vue'
+import { reactive, onMounted, ref, shallowRef, defineProps, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import clone from 'lodash/clone'
 import uniqueId from 'lodash/uniqueId'
 import findKey from 'lodash/findKey'
+import find from 'lodash/find'
 
 const router = useRouter()
 const { dispatch, getters } = useStore()
@@ -25,7 +26,7 @@ const form = ref(null)
 const rules = {
 	title: {
 		required: true,
-		message: 'Необходимо заполнить поле названия задачи',
+		message: 'Необходимо заполнить поле название задачи',
 		trigger: 'input'
 	},
 
@@ -42,7 +43,7 @@ function makeTodo() {
 
 	defaultTodoStatus[status] = true
 
-	return { title, description, ...defaultTodoStatus, id: props.id || uniqueId() }
+	return { title, description, ...defaultTodoStatus, id: +props.id || uniqueId() }
 }
 
 function onSave() {
@@ -68,17 +69,18 @@ onMounted(() => {
 	visible.value = true
 
 	if (props.id) {
-		const { title, description } = getters.getRedactableTodo
+		const todo = find(getters.getList, ['id', +props.id])
+		const { title, description } = todo
 
 		formModel.title = title
 		formModel.description = description
-		formModel.status = findKey(getters.getRedactableTodo, (v) => v === true)
+		formModel.status = findKey(todo, (v) => v === true)
 	}
 })
 </script>
 
 <template>
-	<NModal @after-leave="onAfterLeave()" v-model:show="visible" close-on-esc>
+	<NModal @after-leave="onAfterLeave()" v-model:show="visible" :mask-closable="false" close-on-esc>
 		<NCard style="width: 700px" size="huge">
 			<template #header> Создание задачи </template>
 

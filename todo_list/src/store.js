@@ -5,12 +5,28 @@ import orderBy from 'lodash/orderBy'
 import reduce from 'lodash/reduce'
 import omit from 'lodash/omit'
 import findIndex from 'lodash/findIndex'
-import clone from 'lodash/clone'
 
 const state = {
-	list: [],
-	redactableTodo: null,
-	deletedList: [],
+	list: [
+		{
+			id: 1,
+			title: 'Задача 1',
+			description: 'Описание',
+			isTodo: true,
+			isWork: false,
+			isDone: false,
+			isDeleted: false
+		},
+		{
+			id: 2,
+			title: 'Задача 2',
+			description: 'Описание',
+			isTodo: true,
+			isWork: false,
+			isDone: false,
+			isDeleted: false
+		}
+	],
 
 	statusList: [
 		{ label: 'Выполнить', value: 'isTodo' },
@@ -55,15 +71,9 @@ const mutations = {
 		todo.isDeleted = false
 	},
 
-	redactTodo(state, todo) {
-		state.redactableTodo = clone(todo)
-	},
-
 	saveTodoAfterRedact(state, todo) {
-		const index = findIndex(state.list, state.redactableTodo)
-		
+		const index = findIndex(state.list, ['id', +todo.id])
 		state.list[index] = todo
-		state.redactableTodo = null
 	},
 
 	changeStatus(state, data) {
@@ -95,10 +105,6 @@ const actions = {
 		commit('restoreTodo', todo)
 	},
 
-	redactTodo({ commit }, todo) {
-		commit('redactTodo', todo)
-	},
-
 	saveTodoAfterRedact({ commit }, todo) {
 		commit('saveTodoAfterRedact', todo)
 	},
@@ -114,8 +120,6 @@ const actions = {
 
 const getters = {
 	getList: ({ list }) => reject(list, 'isDeleted'),
-
-	getRedactableTodo: ({ redactableTodo }) => redactableTodo,
 
 	getListOnlyDeleted: ({ list }) => filter(list, 'isDeleted'),
 
