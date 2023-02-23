@@ -81,17 +81,17 @@ watch(order, (order) => {
 
 <template>
 	<div class="pt-4 pb-4 sticky top-0 z-10 bg-white">
-		<div class="grid grid-rows-1 grid-cols-5 gap-2 mb-4">
+		<div class="flex gap-2 mb-4">
 			<NSelect
 				v-model:value="filter"
 				placeholder="Параметр фильтрации"
 				:options="filterList"
-				class="col-span-2"
+				class="flex-3"
 			/>
 
-			<NSelect v-model:value="sort" placeholder="Параметр сортировки" :options="sortList" class="col-span-2" />
+			<NSelect v-model:value="sort" placeholder="Параметр сортировки" :options="sortList" class="flex-3" />
 
-			<NButton @click="toggleOrder()" :disabled="!sort" class="col-auto">
+			<NButton @click="toggleOrder()" :disabled="!sort" class="flex-1">
 				{{ computedButtonOrderText }}
 
 				<template #icon>
