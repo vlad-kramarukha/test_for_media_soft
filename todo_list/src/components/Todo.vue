@@ -18,11 +18,10 @@ const emit = defineEmits([
 	'onRedact'
 ])
 
-const todo = computed(() => props.todo)
 const route = useRoute()
 
-const title = computed(() => todo.value.title)
-const description = computed(() => todo.value.description)
+const title = computed(() => props.todo.title)
+const description = computed(() => props.todo.description)
 
 /* Параметры для статуса задачи */
 const statusTypeMap = {
@@ -31,30 +30,30 @@ const statusTypeMap = {
 	isWork: 'info',
 	isDone: 'success'
 }
-const statusKey = computed(() => findKey(todo.value, (v) => v === true)) // Получения ключа актуального статуса задачи
+const statusKey = computed(() => findKey(props.todo, (v) => v === true)) // Получения ключа актуального статуса задачи
 const translatedStatus = computed(() => getters.getTrasformedStatusList[statusKey.value]) // Перевод статуса
 const computedStatusType = computed(() => statusTypeMap[statusKey.value]) // Рассчет цвета для лейбла
 
-const isDeleted = computed(() => todo.value.isDeleted)
-const isRedact = computed(() => (route.params.id ? +route.params.id === +todo.value.id : false))
-const isTodo = computed(() => todo.value.isTodo || isDeleted.value || isRedact.value)
-const isWork = computed(() => todo.value.isWork || isDeleted.value || isRedact.value)
-const isDone = computed(() => todo.value.isDone || isDeleted.value || isRedact.value)
+const isDeleted = computed(() => props.todo.isDeleted)
+const isRedact = computed(() => (route.params.id ? +route.params.id === +props.todo.id : false))
+const isTodo = computed(() => props.todo.isTodo || isDeleted.value || isRedact.value)
+const isWork = computed(() => props.todo.isWork || isDeleted.value || isRedact.value)
+const isDone = computed(() => props.todo.isDone || isDeleted.value || isRedact.value)
 
 const computedActionButtonType = computed(() => (isDeleted.value ? 'success' : 'error')) // Рассчет цвета кнопки для удаления / восстановления задачи
 const computedActionButtonText = computed(() => (isDeleted.value ? 'Восстановить' : 'Удалить')) // Рассчет текста кнопки для удаления / восстановления задачи
 
 function onChangeStatus(newStatus) {
-	emit('onChangeStatus', { newStatus, todo: todo.value })
+	emit('onChangeStatus', { newStatus, todo: props.todo })
 }
 
 function onAction() {
 	const name = isDeleted.value ? 'onRestore' : 'onDelete'
-	emit(name, todo.value)
+	emit(name, props.todo)
 }
 
 function onRedact() {
-	emit('onRedact', todo.value)
+	emit('onRedact', props.todo)
 }
 </script>
 

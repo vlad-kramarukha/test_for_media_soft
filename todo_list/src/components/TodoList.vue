@@ -30,6 +30,8 @@ const filterList = getters.getFilterList
 
 const computedButtonOrderText = computed(() => (order.value === 'asc' ? 'По возрастанию' : 'По убыванию'))
 const computedButtonOrderIcon = computed(() => (order.value === 'asc' ? ArrowUp : ArrowDown))
+const computedToggleListButtonText = computed(() => !props.showDeleted ? 'Показать удаленные' : 'Показать действующие')
+const computedToggleListButtonType = computed(() => !props.showDeleted ? 'default' : 'primary')
 
 function toggleOrder() {
 	order.value = order.value === 'asc' ? 'desc' : 'asc'
@@ -104,8 +106,8 @@ watch(order, (order) => {
 				<NButton class="mr-2" type="error" @click="onClear()"> Очистить фильтры </NButton>
 			</div>
 
-			<NButton :type="!props.showDeleted ? 'default' : 'primary'" @click="toggleList()">
-				{{ !props.showDeleted ? 'Показать удаленные' : 'Показать действующие' }}
+			<NButton :type="computedToggleListButtonType" @click="toggleList()">
+				{{ computedToggleListButtonText }}
 			</NButton>
 		</div>
 
