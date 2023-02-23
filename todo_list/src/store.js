@@ -115,7 +115,7 @@ const actions = {
 const getters = {
 	getList: ({ list }) => reject(list, 'isDeleted'),
 
-	getRedactableTodo: ({redactableTodo}) => redactableTodo,
+	getRedactableTodo: ({ redactableTodo }) => redactableTodo,
 
 	getListOnlyDeleted: ({ list }) => filter(list, 'isDeleted'),
 
@@ -139,17 +139,17 @@ const getters = {
 			{}
 		),
 
-	makeFilterByIsTodo: ({ list }) => filter(reject(list, 'isDeleted'), 'isTodo'),
+	makeFilterByIsTodo: (state, { getList }) => filter(getList, 'isTodo'),
 
-	makeFilterByIsWork: ({ list }) => filter(reject(list, 'isDeleted'), 'isWork'),
+	makeFilterByIsWork: (state, { getList }) => filter(getList, 'isWork'),
 
-	makeFilterByIsDone: ({ list }) => filter(reject(list, 'isDeleted'), 'isDone'),
+	makeFilterByIsDone: (state, { getList }) => filter(getList, 'isDone'),
 
-	makeFilterDeletedByIsTodo: ({ list }) => filter(filter(list, 'isDeleted'), 'isTodo'),
+	makeFilterDeletedByIsTodo: (state, { getListOnlyDeleted }) => filter(getListOnlyDeleted, 'isTodo'),
 
-	makeFilterDeletedByIsWork: ({ list }) => filter(filter(list, 'isDeleted'), 'isWork'),
+	makeFilterDeletedByIsWork: (state, { getListOnlyDeleted }) => filter(getListOnlyDeleted, 'isWork'),
 
-	makeFilterDeletedByIsDone: ({ list }) => filter(filter(list, 'isDeleted'), 'isDone')
+	makeFilterDeletedByIsDone: (state, { getListOnlyDeleted }) => filter(getListOnlyDeleted, 'isDone')
 }
 
 export default createStore({

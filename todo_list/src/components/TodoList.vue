@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, CloudOffline } from '@vicons/ionicons5'
 import Todo from './Todo.vue'
 
 import { useStore } from 'vuex'
-import { computed, defineProps, ref, watch } from 'vue'
+import { computed, defineProps, shallowRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps({
@@ -22,11 +22,11 @@ const todoList = computed(() => {
 	}
 })
 
-const sort = ref(null)
-const sortList = ref(getters.getSortList)
-const order = ref('asc')
-const filter = ref(null)
-const filterList = ref(getters.getFilterList)
+const sort = shallowRef(null)
+const sortList = getters.getSortList
+const order = shallowRef('asc')
+const filter = shallowRef(null)
+const filterList = getters.getFilterList
 
 const computedButtonOrderText = computed(() => (order.value === 'asc' ? 'По возрастанию' : 'По убыванию'))
 const computedButtonOrderIcon = computed(() => (order.value === 'asc' ? ArrowUp : ArrowDown))
@@ -36,7 +36,7 @@ function toggleOrder() {
 }
 
 function onCreate() {
-	router.push({ path: '/list/add' })
+	router.push({ name: 'Form' })
 }
 
 function onChangeStatus({ newStatus, todo }) {
@@ -51,18 +51,9 @@ function onRestore(todo) {
 	dispatch('restoreTodo', todo)
 }
 
-function onSave(todo, index) {
-	dispatch('saveTodoAfterRedact', { todo, index })
-	router.push({ name: 'List' })
-}
-
 function onRedact(todo) {
 	router.push({ name: 'ListWithRedactMode', params: { id: todo.id } })
 	dispatch('redactTodo', todo)
-}
-
-function onCancelRedact() {
-	router.push({ name: 'List' })
 }
 
 function onClear() {
@@ -123,14 +114,12 @@ watch(order, (order) => {
 
 	<div class="flex flex-col gap-4 z-0">
 		<Todo
-			v-for="(todo, index) in todoList"
+			v-for="todo in todoList"
 			:todo="todo"
 			@onChangeStatus="onChangeStatus($event)"
 			@onDelete="onDelete($event)"
 			@onRestore="onRestore($event)"
-			@onSave="onSave($event, index)"
 			@onRedact="onRedact($event)"
-			@onCancelRedact="onCancelRedact($event)"
 		></Todo>
 
 		<NIcon class="no-data" size="60" color="#d1d5db" v-if="!todoList.length" :component="CloudOffline" />

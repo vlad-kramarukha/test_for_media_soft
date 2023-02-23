@@ -1,7 +1,7 @@
 <script setup>
-import { NCard, NButton, NTag, NIcon, NForm, NFormItem, NInput } from 'naive-ui'
+import { NCard, NButton, NTag, NIcon } from 'naive-ui'
 import { PencilSharp } from '@vicons/ionicons5'
-import { defineProps, defineEmits, computed, ref, watch } from 'vue'
+import { defineProps, defineEmits, computed } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
 import findKey from 'lodash/findKey'
@@ -18,10 +18,7 @@ const emit = defineEmits([
 	'onRedact'
 ])
 
-const todo = computed({
-	get: () => props.todo,
-	set: () => {}
-})
+const todo = computed(() => props.todo)
 const route = useRoute()
 
 const title = computed(() => todo.value.title)

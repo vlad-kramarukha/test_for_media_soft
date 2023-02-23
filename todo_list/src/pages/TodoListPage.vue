@@ -1,6 +1,6 @@
 <script setup>
 import TodoList from '../components/TodoList.vue'
-import { defineProps, watch, computed } from 'vue'
+import { defineProps, computed } from 'vue'
 
 const props = defineProps({
 	showDeleted: Boolean,

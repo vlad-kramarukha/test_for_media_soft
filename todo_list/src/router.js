@@ -19,6 +19,7 @@ const router = createRouter({
 			children: [
 				{
 					path: 'add',
+					name: 'Form',
 					component: useTodoFormComponent
 				},
 

@@ -1,6 +1,6 @@
 <script setup>
 import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSelect } from 'naive-ui'
-import { reactive, onMounted, ref, defineProps } from 'vue'
+import { reactive, onMounted, ref, shallowRef, defineProps } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import clone from 'lodash/clone'
@@ -20,7 +20,7 @@ const formModel = reactive({
 	status: 'isTodo'
 })
 
-const visible = ref(false)
+const visible = shallowRef(false)
 const form = ref(null)
 const rules = {
 	title: {
@@ -61,13 +61,13 @@ function onClose() {
 }
 
 function onAfterLeave() {
-	router.push({ path: '/list' })
+	router.push({ name: 'List' })
 }
 
 onMounted(() => {
 	visible.value = true
 
-	if (getters.getRedactableTodo) {
+	if (props.id) {
 		const { title, description } = getters.getRedactableTodo
 
 		formModel.title = title
